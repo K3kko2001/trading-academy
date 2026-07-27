@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --background: #05070a;
+  --foreground: #f4f5f7;
+  --card: #0d1117;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #34d399;
+  --accent-strong: #10b981;
+  --accent-foreground: #04120c;
+  --muted: #9aa4b2;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #f4f5f7 20%, var(--accent) 60%, #6ee7b7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glow {
+  background: radial-gradient(closest-side, rgba(52, 211, 153, 0.35), transparent);
+  filter: blur(60px);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--float-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-16px) rotate(var(--float-rot, 0deg));
+  }
+}
+
+.animate-float {
+  animation: float var(--float-duration, 6s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}

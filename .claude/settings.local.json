@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(git --version)",
+      "mcp__666a255c-cc8a-4277-a1b0-c4d2a7931760__list_projects",
+      "mcp__666a255c-cc8a-4277-a1b0-c4d2a7931760__list_organizations"
+    ]
+  }
+}

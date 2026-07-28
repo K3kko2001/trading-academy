@@ -1,5 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Check } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Prezzi",
+  description:
+    "Inizia gratis con il percorso Fondamenta. Passa a Premium per strategie avanzate, esempi di trade reali e trading journal.",
+};
 
 const freeFeatures = [
   "Percorso Fondamenta completo",

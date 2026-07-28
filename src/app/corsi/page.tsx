@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowRight, BookOpen, LineChart, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Percorso corsi",
+  description:
+    "Tre livelli per imparare il trading: Fondamenta, Strategie Intermedie e Trading Avanzato.",
+};
 
 const levelLabels: Record<string, string> = {
   principiante: "Principiante",

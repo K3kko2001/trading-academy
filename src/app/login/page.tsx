@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   BarChart3,
   Coins,
@@ -10,6 +11,11 @@ import {
 } from "lucide-react";
 import { login } from "@/app/actions/auth";
 import FloatingIcons from "@/components/floating-icons";
+
+export const metadata: Metadata = {
+  title: "Accedi",
+  robots: { index: false, follow: true },
+};
 
 const floatingItems = [
   { icon: TrendingUp, className: "left-[8%] top-[18%]", duration: 7, delay: 0, rotate: -6 },

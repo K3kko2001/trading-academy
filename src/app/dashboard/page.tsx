@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { ArrowRight, Award, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUser, getProfile, hasActiveSubscription } from "@/lib/dal";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardPage() {
   const user = await getUser();

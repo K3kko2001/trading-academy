@@ -1,9 +1,41 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUser, hasActiveSubscription } from "@/lib/dal";
 import { completeLesson } from "@/app/actions/progress";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ pathSlug: string; lessonSlug: string }>;
+}): Promise<Metadata> {
+  const { pathSlug, lessonSlug } = await params;
+  const supabase = await createClient();
+
+  const { data: path } = await supabase
+    .from("paths")
+    .select("id")
+    .eq("slug", pathSlug)
+    .single();
+
+  if (!path) return {};
+
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("title, summary")
+    .eq("path_id", path.id)
+    .eq("slug", lessonSlug)
+    .single();
+
+  if (!lesson) return {};
+
+  return {
+    title: lesson.title,
+    description: lesson.summary ?? undefined,
+  };
+}
 
 export default async function LessonPage({
   params,

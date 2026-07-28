@@ -1,7 +1,29 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ pathSlug: string }>;
+}): Promise<Metadata> {
+  const { pathSlug } = await params;
+  const supabase = await createClient();
+  const { data: path } = await supabase
+    .from("paths")
+    .select("title, description")
+    .eq("slug", pathSlug)
+    .single();
+
+  if (!path) return {};
+
+  return {
+    title: path.title,
+    description: path.description ?? undefined,
+  };
+}
 
 export default async function PathPage({
   params,

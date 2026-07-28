@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowRight, Newspaper } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description:
+    "Recap di mercato ed esempi pratici, aggiornati regolarmente e revisionati prima della pubblicazione.",
+};
 
 export default async function BlogPage() {
   const supabase = await createClient();

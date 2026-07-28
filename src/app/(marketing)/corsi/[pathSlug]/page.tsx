@@ -1,0 +1,124 @@
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { ArrowLeft, CheckCircle2, Lock, Unlock } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { getProfile, hasActiveSubscription } from "@/lib/dal";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ pathSlug: string }>;
+}): Promise<Metadata> {
+  const { pathSlug } = await params;
+  const supabase = await createClient();
+  const { data: path } = await supabase
+    .from("paths")
+    .select("title, description")
+    .eq("slug", pathSlug)
+    .single();
+
+  if (!path) return {};
+
+  return {
+    title: path.title,
+    description: path.description ?? undefined,
+  };
+}
+
+export default async function PathPage({
+  params,
+}: {
+  params: Promise<{ pathSlug: string }>;
+}) {
+  const { pathSlug } = await params;
+  const supabase = await createClient();
+
+  const { data: path } = await supabase
+    .from("paths")
+    .select("*")
+    .eq("slug", pathSlug)
+    .single();
+
+  if (!path) notFound();
+
+  const { data: lessons } = await supabase
+    .from("lessons")
+    .select("slug, title, summary, is_premium, image_url, order_index")
+    .eq("path_id", path.id)
+    .order("order_index");
+
+  const [profile, isSubscriber] = await Promise.all([
+    getProfile(),
+    hasActiveSubscription(),
+  ]);
+  const hasFullAccess = isSubscriber || profile?.role === "admin";
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-6 py-16">
+      <Link
+        href="/corsi"
+        className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
+      >
+        <ArrowLeft size={14} /> Tutti i percorsi
+      </Link>
+      <h1 className="mt-4 text-3xl font-semibold">{path.title}</h1>
+      <p className="mt-2 text-muted">{path.description}</p>
+
+      <ol className="mt-10 space-y-3">
+        {lessons?.map((lesson, i) => (
+          <li key={lesson.slug}>
+            <Link
+              href={`/corsi/${pathSlug}/${lesson.slug}`}
+              className="flex items-center gap-4 rounded-xl border border-white/10 bg-card p-3 transition-colors hover:border-accent/40"
+            >
+              {lesson.image_url ? (
+                <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
+                  <Image
+                    src={lesson.image_url}
+                    alt=""
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <span className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg bg-white/5 text-sm font-medium text-muted">
+                  {i + 1}
+                </span>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted">{i + 1}.</span>
+                  <span className="font-medium">{lesson.title}</span>
+                </div>
+                {lesson.summary && (
+                  <p className="mt-1 truncate text-sm text-muted">
+                    {lesson.summary}
+                  </p>
+                )}
+              </div>
+
+              {lesson.is_premium ? (
+                hasFullAccess ? (
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+                    <Unlock size={12} /> Premium
+                  </span>
+                ) : (
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-400/10 px-3 py-1 text-xs font-medium text-amber-300">
+                    <Lock size={12} /> Premium
+                  </span>
+                )
+              ) : (
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+                  <CheckCircle2 size={12} /> Gratis
+                </span>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}

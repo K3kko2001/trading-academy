@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
+import { getUser } from "@/lib/dal";
 
-export default function Footer() {
+export default async function Footer() {
+  const user = await getUser();
+
   return (
     <footer className="border-t border-white/10 bg-background">
       <div className="mx-auto max-w-6xl px-6 py-14">
@@ -43,16 +46,33 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Account</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted">
-              <li>
-                <Link href="/registrati" className="hover:text-foreground">
-                  Registrati
-                </Link>
-              </li>
-              <li>
-                <Link href="/login" className="hover:text-foreground">
-                  Accedi
-                </Link>
-              </li>
+              {user ? (
+                <>
+                  <li>
+                    <Link href="/dashboard" className="hover:text-foreground">
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/impostazioni" className="hover:text-foreground">
+                      Impostazioni
+                    </Link>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link href="/registrati" className="hover:text-foreground">
+                      Registrati
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/login" className="hover:text-foreground">
+                      Accedi
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>

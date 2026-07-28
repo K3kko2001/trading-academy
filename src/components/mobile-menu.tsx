@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  BookOpen,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 
-const links = [
+const marketingLinks = [
   { href: "/corsi", label: "Percorso corsi" },
   { href: "/blog", label: "Blog" },
   { href: "/prezzi", label: "Prezzi" },
@@ -12,9 +19,11 @@ const links = [
 
 export default function MobileMenu({
   loggedIn,
+  isAdmin,
   logoutAction,
 }: {
   loggedIn: boolean;
+  isAdmin?: boolean;
   logoutAction: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -32,34 +41,59 @@ export default function MobileMenu({
       {open && (
         <div className="absolute inset-x-0 top-full border-b border-white/10 bg-background shadow-2xl shadow-black/50">
           <div className="flex flex-col gap-1 px-6 py-4">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/90 hover:bg-white/5"
-              >
-                {l.label}
-              </Link>
-            ))}
-            <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-3">
-              {loggedIn ? (
-                <>
+            {loggedIn ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-white/5"
+                >
+                  <LayoutDashboard size={16} /> Dashboard
+                </Link>
+                <Link
+                  href="/corsi"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-white/5"
+                >
+                  <BookOpen size={16} /> Percorso corsi
+                </Link>
+                {isAdmin && (
                   <Link
-                    href="/dashboard"
+                    href="/admin"
                     onClick={() => setOpen(false)}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-white/5"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-white/5"
                   >
-                    Dashboard
+                    <ShieldCheck size={16} /> Admin
                   </Link>
+                )}
+                <Link
+                  href="/impostazioni"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-white/5"
+                >
+                  <Settings size={16} /> Impostazioni
+                </Link>
+                <div className="mt-2 border-t border-white/10 pt-3">
                   <form action={logoutAction}>
                     <button className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted hover:bg-white/5">
                       Esci
                     </button>
                   </form>
-                </>
-              ) : (
-                <>
+                </div>
+              </>
+            ) : (
+              <>
+                {marketingLinks.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setOpen(false)}
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/90 hover:bg-white/5"
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+                <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-3">
                   <Link
                     href="/login"
                     onClick={() => setOpen(false)}
@@ -74,9 +108,9 @@ export default function MobileMenu({
                   >
                     Registrati
                   </Link>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

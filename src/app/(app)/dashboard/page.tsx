@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowRight, Award, Sparkles } from "lucide-react";
+import { ArrowRight, Award, PlayCircle, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUser, getProfile, hasActiveSubscription } from "@/lib/dal";
 
@@ -19,12 +19,16 @@ export default async function DashboardPage() {
     getProfile(),
     hasActiveSubscription(),
   ]);
+  const hasFullAccess = isSubscriber || profile?.role === "admin";
 
   const supabase = await createClient();
 
   const [{ data: paths }, { data: lessons }, { data: progress }] = await Promise.all([
     supabase.from("paths").select("id, slug, title, image_url").order("order_index"),
-    supabase.from("lessons").select("id, path_id"),
+    supabase
+      .from("lessons")
+      .select("id, path_id, slug, title, summary, image_url, is_premium, order_index")
+      .order("order_index"),
     supabase.from("lesson_progress").select("lesson_id").eq("user_id", user.id),
   ]);
 
@@ -38,6 +42,21 @@ export default async function DashboardPage() {
     if (completedIds.has(lesson.id)) entry.done += 1;
     lessonsByPath.set(lesson.path_id, entry);
   }
+
+  const pathById = new Map((paths ?? []).map((p) => [p.id, p]));
+
+  type Lesson = NonNullable<typeof lessons>[number];
+  let nextLesson: Lesson | undefined;
+  for (const path of paths ?? []) {
+    const found = (lessons ?? [])
+      .filter((l) => l.path_id === path.id)
+      .find((l) => !completedIds.has(l.id) && (!l.is_premium || hasFullAccess));
+    if (found) {
+      nextLesson = found;
+      break;
+    }
+  }
+  const nextLessonPath = nextLesson ? pathById.get(nextLesson.path_id) : undefined;
 
   const name = profile?.full_name ?? user.email;
 
@@ -98,8 +117,41 @@ export default async function DashboardPage() {
           )}
         </div>
 
+        {nextLesson && nextLessonPath && (
+          <>
+            <h2 className="mt-12 text-xl font-semibold">Continua da qui</h2>
+            <Link
+              href={`/corsi/${nextLessonPath.slug}/${nextLesson.slug}`}
+              className="group mt-6 flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-card transition-colors hover:border-accent/40 sm:flex-row"
+            >
+              {nextLesson.image_url && (
+                <div className="relative h-40 w-full shrink-0 overflow-hidden sm:h-auto sm:w-64">
+                  <Image
+                    src={nextLesson.image_url}
+                    alt=""
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
+                </div>
+              )}
+              <div className="flex flex-1 flex-col justify-center p-6">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                  {nextLessonPath.title}
+                </span>
+                <h3 className="mt-1 text-lg font-semibold">{nextLesson.title}</h3>
+                {nextLesson.summary && (
+                  <p className="mt-1 text-sm text-muted">{nextLesson.summary}</p>
+                )}
+                <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent">
+                  <PlayCircle size={16} /> Continua lezione
+                </span>
+              </div>
+            </Link>
+          </>
+        )}
+
         <h2 className="mt-12 text-xl font-semibold">I tuoi percorsi</h2>
-        <div className="mt-6 grid gap-5 sm:grid-cols-3">
+        <div className="mt-6 space-y-3">
           {paths?.map((path) => {
             const stats = lessonsByPath.get(path.id) ?? { total: 0, done: 0 };
             const pct = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
@@ -108,36 +160,21 @@ export default async function DashboardPage() {
               <Link
                 key={path.id}
                 href={`/corsi/${path.slug}`}
-                className="group overflow-hidden rounded-2xl border border-white/10 bg-card transition-colors hover:border-accent/40"
+                className="flex items-center gap-4 rounded-xl border border-white/10 bg-card px-5 py-4 transition-colors hover:border-accent/40"
               >
-                {path.image_url && (
-                  <div className="relative h-32 w-full overflow-hidden">
-                    <Image
-                      src={path.image_url}
-                      alt=""
-                      fill
-                      className="object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-                  </div>
-                )}
-                <div className="p-5">
-                  <h3 className="font-semibold">{path.title}</h3>
-                  <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-medium">{path.title}</h3>
+                  <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
                     <div
                       className="h-full rounded-full bg-accent"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-muted">
-                    <span>
-                      {stats.done}/{stats.total} lezioni
-                    </span>
-                    <span className="inline-flex items-center gap-1 font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
-                      Continua <ArrowRight size={12} />
-                    </span>
-                  </div>
                 </div>
+                <span className="shrink-0 text-xs text-muted">
+                  {stats.done}/{stats.total} lezioni
+                </span>
+                <ArrowRight size={16} className="shrink-0 text-muted" />
               </Link>
             );
           })}
